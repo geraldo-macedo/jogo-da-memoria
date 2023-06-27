@@ -89,19 +89,19 @@
 
 @keyframes pulse {
 			0% {
-				border-color: #0FF;
+				border-color: #f4c531;
 				box-shadow: 0 0 0 0 rgba(0, 155, 155, 0.4);
 			}
 			70% {
-				border-color: #0FF;
+				border-color: #f4c531;
 				box-shadow: 0 0 0 10px rgba(0, 155, 155, 0);
 			}
 			100% {
-				border-color: #0FF;
+				border-color:#f4c531;
 				box-shadow: 0 0 0 0 rgba(0, 155, 155, 0);
 			}
 			150% {
-				border-color: #0FF;
+				border-color: #f4c531;
 				box-shadow: 0 0 0 0 rgba(0, 155, 155, 0);
 			}
 	}

@@ -1,0 +1,344 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="style.css">
+    <title>game da memória</title>
+</head>
+<body>
+ <div class="wrapper">
+    <div class="status-container">
+        <div id="contar-movimentos"></div>
+        <div id="time"></div>
+    </div>
+    <div class="game-container"></div>
+    <button id="stop" class="esconder">Stop</button>
+ </div>
+
+ <div class="controles-container">
+    <p id="resultado"></p>
+    <button id="start">Start</button>
+ </div>
+    
+<script src="app/main.js"></script>
+</body>
+</html>
+
+*{
+    padding: 0;
+    margin: 0;
+    box-sizing: border-box;
+    font-family: 'Courier New', Courier, monospace;
+}
+
+body {
+    background-color: #f4c531;
+}
+
+.wrapper {
+    box-sizing: content-box;
+    width: 26.87em;
+    padding: 2.5em 3em;
+    background-color: #ffffff;
+    position: absolute;
+    transform: translate(-50%, -50%);
+    left: 50%;
+    top: 50%;
+    border-radius: 0.6em;
+    box-shadow: 0 0.9em 2.8em rgba(86, 66, 0, 0.2);
+}
+
+.game-container {
+    position: relative;
+    width: 100%;
+    display: grid;
+    gap: 0.6em;
+}
+
+.status-container {
+    text-align: right;
+    margin-bottom: 1.2em;
+}
+
+.status-container span {
+    font-weight: 600;
+}
+
+.card-container {
+    position: relative;
+    width: 6.25em;
+    height: 6.25em;
+    cursor: pointer;
+}
+
+.card-before,
+.card-after {
+    position: absolute;
+    border-radius: 5px;
+    width: 100%;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: 4px solid #252525;
+    transition: transform 0.7s ease-out;
+    backface-visibility: hidden;
+}
+
+.card-before {
+    background-color: #f4c531;
+    font-size: 2.8em;
+    font-weight: 600;
+}
+
+.card-after {
+    background-color: #ffffff;
+    transform: rotateY(180deg);
+}
+
+.card-container.virado .card-before {
+    transform: rotateY(180deg);
+}
+
+.card-container.virado .card-after {
+    transform: rotateY(0deg);
+}
+
+.controles-container {
+    position: absolute;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-direction: column;
+    width: 100%;
+    height: 100%;
+    background-color: #f4c531;
+    top: 0;
+}
+
+button {
+    border: none;
+    border-radius: 0.3em;
+    padding: 1em 1.5em;
+    cursor: pointer;
+}
+
+#stop {
+    font-size: 1.1em;
+    display: block;
+    margin: 1.1em auto 0 auto;
+    background-color: #252525;
+    color: #ffffff;
+}
+
+.controles-container button {
+    font-size: 1.3em;
+    box-shadow: 0 0.6em 2em rgb(86, 66, 0, 0.2);
+}
+
+.esconder {
+    display: none;
+}
+
+#resultado {
+    text-align: center;
+}
+
+#resultado h2 {
+    font-size: 2.5em;
+}
+
+#resultado h4 {
+    font-size: 1.8em;
+    margin: 0.6em 0 1em 0;
+}
+
+
+
+
+
+
+
+
+const movimentos = document.getElementById("contar-movimentos");
+const valuetime = document.getElementById("time");
+const buttonStart = document.getElementById("start");
+const buttonStop = document.getElementById("stop");
+const gameContainer = document.querySelector(".game-container");
+const resultado = document.getElementById("resultado");
+const controles = document.querySelector(".controles-container");
+
+let cards;
+let intervalo;
+let primeiroCard = false;
+let segundoCard = false;
+
+//itens do array
+const itens = [
+    { name: "poodle", image: "poodle.png"},
+    { name: "rusk", image: "rusk.png"},
+    { name: "borzoi", image: "borzoi.png"},
+    { name: "buldog", image: "buldog.png"},
+    { name: "york", image: "york.png"},
+    { name: "chiuaua", image: "chiuaua.png"},
+    { name: "splitz", image: "splitz.png"},
+    { name: "rott", image: "rott.png"},
+    { name: "labrador", image: "labrador.png"},
+    { name: "pug", image: "pug.png"},
+    { name: "salsicha", image: "salsicha.png"},
+    { name: "pastor", image: "pastor.png"},
+];
+
+//inicio do time
+let segundos = 0,
+    minutos = 0;
+
+//movimentos iniciais e contar de vitórias
+let contarmovimentos = 0,
+    contarWin = 0;
+
+
+//para o timer
+const timeGenerator = () => {
+    segundos += 1;
+//lógica dos minutos
+    if (segundos += 60) {
+        minutos += 1;
+        segundos = 0;
+    }
+//formatar a hora antes de exibir
+let valuesegundos = segundos < 10 ? `0${segundos}` : segundos;
+let valueMinutos = minutos < 10 ? `0${minutos}` : minutos;
+valorTempo.innerHTML = `<span>time:</span>${valueMinutos}:${valuesegundos}`
+};
+
+//para calcular movimentos
+const movecontarer = () => {
+    contarmovimentos += 1
+    movimentos.innerHTML = `<span>movimentos:</span>${contarmovimentos}`
+}
+
+//escolhe objetos aleatórios do array
+
+const gerarAleatorio = (size = 4) => {
+//array timerário
+    let temporaryArray = [...items];
+//inicializa 
+    let valuesCard = [];
+//tamanho deve ser duplo(matriz 4*4)/2 já que existiriam pares de objetos
+    size = (size * size) / 2;
+//selecao de objeto aleatoria
+    for (let i = 0; i < size; i++) {
+        const indexAleatorio = Math.floor(Math.random() * temporaryArray.length);
+        valuesCard.push(temporaryArray[indexAleatorio]);
+    //uma vez selecionado remove o objeto do array timerario
+        temporaryArray.splice(indexAleatorio, 1);
+    }
+
+    return valuesCard;
+
+};
+
+const geraMatriz = (valuesCard, size = 4) => {
+    gameContainer.innerHTML = "";
+    valuesCard = [...valuesCard, ...valuesCard];
+//embaralhamento simples
+    valuesCard.sort(() => Math.random() - 0.5);
+    for (let i = 0; i < size * size; i++) {
+/*criação de cards, antes = contem ?, depois contem a imagem real.
+data-card-values é um atributo personalizado que armazena os nomes dos cartoes para correspondencia posterior*/
+    gameContainer.innerHTML += `<div class="card-container" data-card-value="${valuesCard[i].name}">
+    <div class="card-before">?</div>
+    <div class="card-after"><img src="${valuesCard[i].image}" class="image"/></div>
+    </div>
+    `;
+}
+
+//grid
+gameContainer.style.griTemplateColumns = `repeat(${size},auto)`;
+
+//cards
+cards = document.querySelectorAll(".card-container");
+cards.forEach((card) => {
+    card.addEventListener("click", () => {
+//se os cards selecionados ainda não forem iguais apenas executa, ou seja, o card certo quando clicado será ignorado
+        if (!card.classList.contains("matched")) {
+//virar card clicado
+            card.classList.add("virado");
+            if (!primeiroCard) {
+                primeiroCard = card;
+                valorPrimeiroCard = card.getAttribute("data-card-value");
+            } else {
+//incrementa movimento quando o usuario selecionar o second card
+             movecontarer();
+             segundoCard = card;
+             let valorSegundoCard = card.getAttribute("data-card-value");
+             if (valorPrimeiroCard == valorSegundoCard) {
+                primeiroCard.classList.add("matched");
+                segundoCard.classList.add("matched");
+                primeiroCard = false;
+                contarWin += 1;
+                if (contarWin == Math.floor(valuesCard.length / 2)) {
+                    resultado.innerHTML = `<h2>Você venceu!</h2> <h4> movimentos: ${movecontarer} </h4>`;
+                    stopGame();
+                }
+             } else {
+                let [firsttimerario, secondtimerario] = [primeiroCard, segundoCard];
+                primeiroCard = false;
+                segundoCard = false;
+                let delay = setTimeout(()  => {
+                    firsttimerario.classList.remove("virado");
+                    secondtimerario.classList.remove("virado");
+                }, 900);
+             }
+            }
+        
+        }
+    });
+});
+};
+
+//start do game
+
+buttonStart.addEventListener("click", () => {
+    contarmovimentos = 0;
+    segundos = 0;
+    minutos = 0;
+//controles e visibilidade dos botões
+    controles.classList.add("esconder");
+    buttonStop.classList.remove("esconder");
+    buttonStart.classList.add("esconder");
+//inicialização do timer
+    intervalo = setintervalo(timeGenerator, 1000);
+//inicialização dos movimentos
+    movimentos.innerHTML = `<span>movimentos:</span> ${contarmovimentos}`;
+    incializacao();
+});
+
+//stop game
+buttonStop.addEventListener("click", (stopGame = () => {
+    controles.classList.remove("esconder");
+    buttonStop.classList.add("esconder");
+    buttonStart.classList.remove("esconder");
+    clearintervalo(intervalo);
+})
+);
+
+//inicialização dos values e chamada das funções
+
+const incializacao = () => {
+    resultado.innerText = "";
+    contarWin = 0;
+    let valuesCard = gerarAleatorio();
+    console.log(valuesCard);
+    geraMatriz(valuesCard);
+};
+
+
+
+
+
+
+
